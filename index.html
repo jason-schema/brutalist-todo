@@ -1,13 +1,35 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Brutalist To-Do</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app"></div>
+  <!-- Search Bar -->
+  <header>
+    <input type="text" placeholder="Search tasks..." />
+  </header>
+
+  <div class="layout">
+    <!-- Left nav -->
+    <nav>Primary Navigation</nav>
+
+    <!-- Main content -->
+    <main id="calendar">
+      <section class="date-section" data-date="2025-06-14">
+        <div class="date-header">
+          <h2>June 14, 2025</h2>
+          <button class="add-card-btn" title="Add Card">+</button>
+        </div>
+        <div class="card-container"></div>
+      </section>
+    </main>
+
+    <!-- Right nav -->
+    <aside>Year/Month Nav</aside>
+  </div>
+
   <script type="module" src="src/app.js"></script>
 </body>
 </html>
