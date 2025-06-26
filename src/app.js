@@ -9,6 +9,8 @@ let draggedElement = null;
 let dragGhost = null;
 let originalParent = null;
 let originalIndex = null;
+let draggedCard = null;
+let cardDragGhost = null;
 
 // Utility functions
 const saveToLocalStorage = () => {
@@ -101,15 +103,34 @@ const createTodoItem = (text, isCompleted = false, todoId = null) => {
     }
   });
 
-  const textInput = document.createElement('input');
-  textInput.type = 'text';
+  const textInput = document.createElement('textarea');
   textInput.className = 'todo-text-input';
   textInput.value = text;
+  textInput.rows = 1;
+  
+  // Auto-resize textarea
+  const autoResize = () => {
+    textInput.style.height = 'auto';
+    const scrollHeight = textInput.scrollHeight;
+    textInput.style.height = Math.min(scrollHeight, 60) + 'px'; // Max 3 lines
+  };
+  
+  textInput.addEventListener('input', autoResize);
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      textInput.blur();
+    }
+  });
+  
   textInput.addEventListener('blur', () => {
     if (todoId) {
       updateTodoInStorage(todoId, { text: textInput.value });
     }
   });
+  
+  // Initial resize
+  setTimeout(autoResize, 0);
 
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'todo-delete-btn';
@@ -164,7 +185,7 @@ const createNewTodoInput = (cardId, dateKey) => {
       } else {
         todoData[dateKey].push({
           id: cardId,
-          title: 'Untitled Tasks',
+          title: 'Untitled Card',
           todos: [{
             id: todoId,
             text: input.value.trim(),
@@ -239,8 +260,8 @@ const deleteCard = (card, cardId) => {
 // Setup drag and drop for todo items
 const setupDragAndDrop = (li) => {
   li.addEventListener('mousedown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
-      return; // Don't start drag if clicking on input or button
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') {
+      return; // Don't start drag if clicking on input, textarea or button
     }
     
     e.preventDefault();
@@ -248,7 +269,21 @@ const setupDragAndDrop = (li) => {
   });
 };
 
-// Start drag operation
+// Setup card header drag and drop
+const setupCardDragAndDrop = (card) => {
+  const titleInput = card.querySelector('.card-title-input');
+  
+  titleInput.addEventListener('mousedown', (e) => {
+    if (titleInput.classList.contains('untitled') || titleInput === document.activeElement) {
+      return; // Don't start drag if clicking on untitled card or if input is focused
+    }
+    
+    e.preventDefault();
+    startCardDrag(e, card);
+  });
+};
+
+// Start drag operation for todo items
 const startDrag = (e, li) => {
   if (li.classList.contains('done')) return; // Don't drag completed items
   
@@ -276,7 +311,33 @@ const startDrag = (e, li) => {
   document.body.style.userSelect = 'none';
 };
 
-// Handle drag movement
+// Start drag operation for cards
+const startCardDrag = (e, card) => {
+  draggedCard = card;
+  originalParent = card.parentNode;
+  originalIndex = Array.from(originalParent.children).indexOf(card);
+  
+  // Create ghost element
+  cardDragGhost = card.cloneNode(true);
+  cardDragGhost.classList.add('drag-ghost');
+  cardDragGhost.style.position = 'fixed';
+  cardDragGhost.style.left = e.clientX + 'px';
+  cardDragGhost.style.top = e.clientY + 'px';
+  cardDragGhost.style.width = card.offsetWidth + 'px';
+  document.body.appendChild(cardDragGhost);
+  
+  // Add dragging class to original
+  card.classList.add('dragging');
+  
+  // Add event listeners
+  document.addEventListener('mousemove', onCardDragMove);
+  document.addEventListener('mouseup', onCardDragEnd);
+  
+  // Prevent text selection
+  document.body.style.userSelect = 'none';
+};
+
+// Handle drag movement for todo items
 const onDragMove = (e) => {
   if (!dragGhost) return;
   
@@ -292,7 +353,23 @@ const onDragMove = (e) => {
   }
 };
 
-// Handle drag end
+// Handle drag movement for cards
+const onCardDragMove = (e) => {
+  if (!cardDragGhost) return;
+  
+  cardDragGhost.style.left = e.clientX + 'px';
+  cardDragGhost.style.top = e.clientY + 'px';
+  
+  // Find drop target
+  const target = findCardDropTarget(e.clientX, e.clientY);
+  if (target && target !== draggedCard) {
+    highlightCardDropZone(target);
+  } else {
+    clearCardDropZones();
+  }
+};
+
+// Handle drag end for todo items
 const onDragEnd = (e) => {
   if (!draggedElement || !dragGhost) return;
   
@@ -304,7 +381,19 @@ const onDragEnd = (e) => {
   cleanupDrag();
 };
 
-// Find drop target
+// Handle drag end for cards
+const onCardDragEnd = (e) => {
+  if (!draggedCard || !cardDragGhost) return;
+  
+  const target = findCardDropTarget(e.clientX, e.clientY);
+  if (target && target !== draggedCard) {
+    moveCard(draggedCard, target);
+  }
+  
+  cleanupCardDrag();
+};
+
+// Find drop target for todo items
 const findDropTarget = (x, y) => {
   const elements = document.elementsFromPoint(x, y);
   for (const element of elements) {
@@ -316,7 +405,18 @@ const findDropTarget = (x, y) => {
   return null;
 };
 
-// Highlight drop zone
+// Find drop target for cards
+const findCardDropTarget = (x, y) => {
+  const elements = document.elementsFromPoint(x, y);
+  for (const element of elements) {
+    if (element.classList.contains('card-container')) {
+      return element;
+    }
+  }
+  return null;
+};
+
+// Highlight drop zone for todo items
 const highlightDropZone = (target) => {
   clearDropZones();
   if (target.classList.contains('todo-list')) {
@@ -324,9 +424,24 @@ const highlightDropZone = (target) => {
   }
 };
 
-// Clear drop zones
+// Highlight drop zone for cards
+const highlightCardDropZone = (target) => {
+  clearCardDropZones();
+  if (target.classList.contains('card-container')) {
+    target.classList.add('card-drop-zone', 'active');
+  }
+};
+
+// Clear drop zones for todo items
 const clearDropZones = () => {
   document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.classList.remove('active');
+  });
+};
+
+// Clear drop zones for cards
+const clearCardDropZones = () => {
+  document.querySelectorAll('.card-drop-zone').forEach(zone => {
     zone.classList.remove('active');
   });
 };
@@ -386,7 +501,34 @@ const moveTodoItem = (draggedItem, targetList) => {
   items.forEach(item => targetList.appendChild(item));
 };
 
-// Cleanup drag operation
+// Move card
+const moveCard = (draggedCard, targetContainer) => {
+  const cardId = draggedCard.dataset.cardId;
+  const newDateSection = targetContainer.closest('.date-section');
+  const newDateKey = newDateSection.dataset.date;
+  
+  // Remove from original location
+  const originalDateSection = draggedCard.closest('.date-section');
+  const originalDateKey = originalDateSection.dataset.date;
+  
+  if (originalDateKey && todoData[originalDateKey]) {
+    const cardIndex = todoData[originalDateKey].findIndex(c => c.id === cardId);
+    if (cardIndex !== -1) {
+      const cardData = todoData[originalDateKey].splice(cardIndex, 1)[0];
+      
+      // Add to new location
+      if (!todoData[newDateKey]) todoData[newDateKey] = [];
+      todoData[newDateKey].push(cardData);
+      
+      saveToLocalStorage();
+    }
+  }
+  
+  // Move DOM element
+  targetContainer.appendChild(draggedCard);
+};
+
+// Cleanup drag operation for todo items
 const cleanupDrag = () => {
   if (dragGhost) {
     dragGhost.remove();
@@ -402,6 +544,28 @@ const cleanupDrag = () => {
   
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
+  document.body.style.userSelect = '';
+  
+  originalParent = null;
+  originalIndex = null;
+};
+
+// Cleanup drag operation for cards
+const cleanupCardDrag = () => {
+  if (cardDragGhost) {
+    cardDragGhost.remove();
+    cardDragGhost = null;
+  }
+  
+  if (draggedCard) {
+    draggedCard.classList.remove('dragging');
+    draggedCard = null;
+  }
+  
+  clearCardDropZones();
+  
+  document.removeEventListener('mousemove', onCardDragMove);
+  document.removeEventListener('mouseup', onCardDragEnd);
   document.body.style.userSelect = '';
   
   originalParent = null;
@@ -426,10 +590,20 @@ const addCardToSection = (dateSection) => {
   deleteBtn.title = 'Delete card';
   deleteBtn.addEventListener('click', () => deleteCard(card, cardId));
 
-  // Create title input
+  // Create title input with default untitled state
   const titleInput = document.createElement('input');
-  titleInput.className = 'card-title-input';
+  titleInput.className = 'card-title-input untitled';
+  titleInput.value = 'Untitled Card';
   titleInput.placeholder = 'Enter card name...';
+
+  // Handle click to edit untitled card
+  titleInput.addEventListener('click', () => {
+    if (titleInput.classList.contains('untitled')) {
+      titleInput.classList.remove('untitled');
+      titleInput.value = '';
+      titleInput.focus();
+    }
+  });
 
   // Handle Enter key behavior
   titleInput.addEventListener('keydown', (e) => {
@@ -438,6 +612,7 @@ const addCardToSection = (dateSection) => {
         titleInput.value = `Untitled Tasks ${String(untitledCount).padStart(3, '0')}`;
         untitledCount++;
       }
+      titleInput.classList.remove('untitled');
       titleInput.blur();
       // Focus on the new todo input
       const newTodoInput = card.querySelector('.new-todo-input');
@@ -475,6 +650,9 @@ const addCardToSection = (dateSection) => {
   card.appendChild(deleteBtn);
   card.appendChild(titleInput);
   card.appendChild(todoList);
+
+  // Setup card drag and drop
+  setupCardDragAndDrop(card);
 
   // Insert card at the top of the container
   cardContainer.prepend(card);
@@ -540,6 +718,21 @@ const loadSavedData = () => {
         const titleInput = document.createElement('input');
         titleInput.className = 'card-title-input';
         titleInput.value = cardData.title;
+        
+        // Check if it's an untitled card
+        if (cardData.title === 'Untitled Card' || !cardData.title.trim()) {
+          titleInput.classList.add('untitled');
+          titleInput.value = 'Untitled Card';
+        }
+        
+        titleInput.addEventListener('click', () => {
+          if (titleInput.classList.contains('untitled')) {
+            titleInput.classList.remove('untitled');
+            titleInput.value = '';
+            titleInput.focus();
+          }
+        });
+        
         titleInput.addEventListener('blur', () => {
           cardData.title = titleInput.value;
           saveToLocalStorage();
@@ -570,6 +763,10 @@ const loadSavedData = () => {
         card.appendChild(deleteBtn);
         card.appendChild(titleInput);
         card.appendChild(todoList);
+        
+        // Setup card drag and drop
+        setupCardDragAndDrop(card);
+        
         cardContainer.appendChild(card);
       });
     }

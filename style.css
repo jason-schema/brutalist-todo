@@ -260,6 +260,7 @@ header input[type="search"]:focus {
   opacity: 1;
 }
 
+/* Card title styling */
 .card-title-input {
   font-size: 16px;
   font-weight: 600;
@@ -271,6 +272,12 @@ header input[type="search"]:focus {
   padding: 0;
   font-family: inherit;
   padding-right: 32px; /* Make room for delete button */
+  cursor: grab;
+  user-select: none;
+}
+
+.card-title-input:active {
+  cursor: grabbing;
 }
 
 .card-title-input:focus {
@@ -279,10 +286,24 @@ header input[type="search"]:focus {
   border-radius: 4px;
   padding: 4px 8px;
   margin: -4px -8px 8px -8px;
+  cursor: text;
 }
 
 .card-title-input::placeholder {
   color: #adb5bd;
+}
+
+/* Default untitled card state */
+.card-title-input.untitled {
+  color: rgba(0, 0, 0, 0.5); /* 50% black */
+  cursor: pointer;
+}
+
+.card-title-input.untitled:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: -4px -8px 8px -8px;
 }
 
 /* Todo list */
@@ -294,7 +315,7 @@ header input[type="search"]:focus {
 
 .todo-list li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 8px 0;
   border-bottom: 1px solid #f1f3f4;
   font-size: 14px;
@@ -313,9 +334,12 @@ header input[type="search"]:focus {
 }
 
 .todo-list li.done {
+  order: 1; /* Move to bottom */
+}
+
+.todo-list li.done .todo-text-input {
   text-decoration: line-through;
   color: #adb5bd;
-  order: 1; /* Move to bottom */
 }
 
 .todo-list li.dragging {
@@ -329,17 +353,44 @@ header input[type="search"]:focus {
   margin-top: 8px;
 }
 
-/* Todo item checkbox */
+/* Custom checkbox - grey circle */
 .todo-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  border: 2px solid #dee2e6;
   margin-right: 12px;
-  width: 18px;
-  height: 18px;
-  accent-color: #28a745;
   cursor: pointer;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+  margin-top: 2px; /* Align with first line of text */
 }
 
-/* Todo item text input */
+.todo-checkbox:hover {
+  background-color: #dee2e6;
+  border-color: #adb5bd;
+}
+
+.todo-checkbox:checked {
+  background-color: #007bff; /* Blue color */
+  border-color: #007bff;
+}
+
+/* Checkmark icon */
+.todo-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  position: absolute;
+}
+
+/* Todo item text input - styled like card title */
 .todo-text-input {
   flex: 1;
   border: none;
@@ -347,8 +398,14 @@ header input[type="search"]:focus {
   font-family: inherit;
   font-size: 14px;
   color: inherit;
-  padding: 4px 0;
+  padding: 0;
   margin-right: 8px;
+  resize: none;
+  min-height: 20px;
+  max-height: 60px; /* 3 lines max */
+  overflow: hidden;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
 .todo-text-input:focus {
@@ -357,6 +414,7 @@ header input[type="search"]:focus {
   border-radius: 4px;
   padding: 4px 8px;
   margin: -4px -8px -4px -8px;
+  cursor: text;
 }
 
 .todo-text-input::placeholder {
@@ -380,6 +438,7 @@ header input[type="search"]:focus {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-top: 2px; /* Align with first line of text */
 }
 
 .todo-delete-btn:hover {
@@ -399,8 +458,8 @@ header input[type="search"]:focus {
   font-size: 14px;
   color: #495057;
   padding: 8px 0;
-  margin-left: 30px; /* Indent to align with other todo items (checkbox width + margin) */
-  width: calc(100% - 30px);
+  margin-left: 32px; /* Indent to align with other todo items (checkbox width + margin) */
+  width: calc(100% - 32px);
   border-bottom: 1px solid #e9ecef;
   transition: border-color 0.2s ease;
 }
@@ -453,6 +512,24 @@ header input[type="search"]:focus {
 }
 
 .drop-zone.active {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+  border-radius: 4px;
+}
+
+/* Card dragging styles */
+.CARD-Task.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+  z-index: 1000;
+}
+
+.card-drop-zone {
+  min-height: 20px;
+  transition: all 0.2s ease;
+}
+
+.card-drop-zone.active {
   background-color: rgba(0, 123, 255, 0.1);
   border: 2px dashed #007bff;
   border-radius: 4px;

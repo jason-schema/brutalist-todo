@@ -11,9 +11,11 @@ A clean, minimal, and functional to-do list application with a modern design and
 
 ### 🎯 **Advanced Task Management**
 - **Create Task Cards**: Click the `+` button on any day to add a new task card
+- **Default Card State**: New cards start with "Untitled Card" in 50% black text
+- **Click to Edit**: Click on "Untitled Card" to start editing the title
 - **Delete Cards**: Hover over any card to see the delete button (×) aligned with the title field
 - **Editable Titles**: Click on card titles to edit them
-- **Checkable Todos**: Each todo item has a green checkbox to mark completion
+- **Checkable Todos**: Each todo item has a custom grey circle checkbox
 - **Delete Todos**: Hover over any todo item to see the delete button (×) on the right
 - **Persistent Storage**: All data is saved to localStorage automatically
 - **Fallback Naming**: Empty titles get auto-generated names (Untitled Tasks 001, 002, etc.)
@@ -33,10 +35,17 @@ A clean, minimal, and functional to-do list application with a modern design and
 - **Focus Management**: After creating a card, focus automatically moves to the todo input
 - **Visual Hierarchy**: Input field has a subtle underline that highlights on focus
 
+### 🎨 **Custom Checkbox Design**
+- **Grey Circle Checkboxes**: Custom circular checkboxes with grey background
+- **Hover Effects**: Checkboxes darken slightly on hover
+- **Checkmark Icons**: Green background with white checkmark when checked
+- **Smooth Transitions**: All state changes have smooth animations
+- **Consistent Sizing**: 20px circles for perfect visual balance
+
 ### 📊 **Smart Todo Organization**
 - **Completion Ordering**: Completed items automatically move to the bottom of their list
 - **Visual States**: Completed items are struck through and grayed out
-- **Checkbox Styling**: Green checkboxes for better visual feedback
+- **Custom Checkbox Styling**: Professional grey circles with green checkmarks
 - **Hover Effects**: Delete buttons appear on hover for clean interface
 
 ### 🔍 **Search & Filter**
@@ -83,15 +92,28 @@ brutalist-todo/
 ### Adding Tasks
 1. **Hover over any day section** - you'll see a `+` button appear
 2. **Click the `+` button** to create a new task card
-3. **Type a title** for your task card (or press Enter for auto-naming)
-4. **Add todo items** by typing in the "New to-do..." field and pressing Enter
-5. **Check off completed items** using the green checkboxes
+3. **New cards start as "Untitled Card"** in muted grey text
+4. **Click on "Untitled Card"** to start editing the title
+5. **Add todo items** by typing in the "New to-do..." field and pressing Enter
+6. **Check off completed items** using the grey circle checkboxes
 
 ### Managing Tasks
 - **Delete Cards**: Hover over any card and click the × button aligned with the title
 - **Delete Todos**: Hover over any todo item and click the × button on the right
 - **Edit Todos**: Click on any todo text to edit it directly
-- **Complete Todos**: Use the green checkboxes to mark items as done
+- **Complete Todos**: Click the grey circle checkboxes to mark items as done
+
+### Card Title Behavior
+- **Default State**: New cards show "Untitled Card" in 50% black text
+- **Click to Edit**: Click on the untitled text to start editing
+- **Visual Feedback**: Untitled cards have a subtle hover effect
+- **Persistence**: Card titles are saved automatically
+
+### Custom Checkboxes
+- **Grey Circles**: Unchecked items show grey circular checkboxes
+- **Hover Effect**: Checkboxes darken slightly when you hover over them
+- **Green Checkmarks**: When checked, circles turn green with white checkmarks
+- **Smooth Animations**: All state changes are smoothly animated
 
 ### Refined Todo Input
 - **Always Ready**: The first row is always an input field for new todos
@@ -143,6 +165,8 @@ The app is designed for incremental development. Potential next steps include:
 - [x] **Delete functionality** for cards and todo items ✅
 - [x] **Drag and drop** reordering of tasks ✅
 - [x] **Refined input experience** with always-available input field ✅
+- [x] **Default card state** with "Untitled Card" behavior ✅
+- [x] **Custom checkbox design** with grey circles ✅
 - [ ] **Categories/themes** for task cards
 - [ ] **Export/import** functionality
 - [ ] **Keyboard shortcuts** for power users
