@@ -2,49 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Brutalist To-Do</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Search Bar -->
-  <header>
-    <h1>Task Manager</h1>
-    <label for="search-input" class="visually-hidden">Search tasks</label>
-    <input
-      id="search-input"
-      type="search"
-      placeholder="Search tasks..."
-      aria-label="Search tasks"
-    />
+  <!-- Skip to main content link for screen readers -->
+  <a href="#main" class="visually-hidden focusable">Skip to main content</a>
+
+  <header role="banner">
+    <h1>Chronos</h1>
+    <div class="search-container">
+      <button class="search-toggle" aria-label="Search tasks" aria-expanded="false">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </button>
+      <div class="search-expanded">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Search tasks..."
+          aria-label="Search tasks"
+        />
+      </div>
+    </div>
   </header>
 
-  <div class="layout">
-    <!-- Left nav -->
-    <nav>
-      <h3>Quick Views</h3>
+  <div class="app-layout">
+    <!-- Left nav - static -->
+    <nav class="left-nav" role="navigation" aria-label="Left navigation">
+      <h3>Projects</h3>
       <ul>
-        <li><a href="#" class="nav-link" data-filter="today">Today</a></li>
-        <li><a href="#" class="nav-link" data-filter="all">All Tasks</a></li>
-        <li><a href="#" class="nav-link" data-filter="completed">Completed</a></li>
+        <li><a href="#" class="active" aria-current="page">All Tasks</a></li>
+        <li><a href="#">Work</a></li>
+        <li><a href="#">Personal</a></li>
+        <li><a href="#">Shopping</a></li>
       </ul>
     </nav>
 
-    <!-- Main content -->
-    <main id="calendar">
-      <!-- Date sections will be generated dynamically -->
-    </main>
+    <!-- Main content area - scrollable -->
+    <main id="main" role="main" class="main-content">
+      <section class="calendar-frame" role="region" aria-label="Calendar view">
+        <div class="calendar-header">
+          <div class="calendar-title-section">
+            <h1 class="calendar-title">Week 51 • Dec 15-21</h1>
+            <div class="calendar-nav" role="navigation" aria-label="Calendar navigation">
+              <button aria-label="Previous week">←</button>
+              <button aria-label="Next week">→</button>
+            </div>
+          </div>
+          <button class="this-week-btn" aria-label="Go to current week">This Week</button>
+        </div>
+        
+        <div id="calendar-content">
+          <!-- Date sections will be generated dynamically -->
+        </div>
+      </section>
 
-    <!-- Right nav -->
-    <aside>
-      <h3>Calendar</h3>
-      <div class="calendar-nav">
-        <button class="nav-btn" id="prev-week">← Previous Week</button>
-        <button class="nav-btn" id="next-week">Next Week →</button>
-      </div>
-      <div class="current-week">
-        <p>Current Week</p>
-      </div>
-    </aside>
+      <!-- Right nav -->
+      <aside class="right-nav" role="complementary" aria-label="Right sidebar">
+        <h3>Quick Actions</h3>
+        <!-- Quick actions content -->
+      </aside>
+    </main>
   </div>
 
   <script type="module" src="src/app.js"></script>
