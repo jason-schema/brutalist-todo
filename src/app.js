@@ -1,7 +1,5 @@
 // Global state management
-let untitledCount = 1;
 let todoData = JSON.parse(localStorage.getItem('brutalistTodoData')) || {};
-let currentDate = new Date();
 let currentWeekOffset = 0;
 
 // Drag and drop state
@@ -29,11 +27,11 @@ const formatDate = (date) => {
 };
 
 const formatDisplayDate = (date) => {
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 };
 
@@ -50,16 +48,16 @@ const getWeekNumber = (date) => {
 const getRelativeDate = (daysOffset) => {
   const today = new Date();
   const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  
+
   // Calculate the start of the current week (Monday)
   const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - daysToMonday);
-  
+
   // Add the week offset and day offset
   const targetDate = new Date(startOfWeek);
   targetDate.setDate(startOfWeek.getDate() + (currentWeekOffset * 7) + daysOffset);
-  
+
   return targetDate;
 };
 
@@ -67,11 +65,11 @@ const getRelativeDate = (daysOffset) => {
 const createDateSection = (date) => {
   const dateKey = formatDate(date);
   const displayDate = formatDisplayDate(date);
-  
+
   const section = document.createElement('section');
   section.className = 'date-section';
   section.dataset.date = dateKey;
-  
+
   section.innerHTML = `
     <div class="date-header">
       <h2 class="date-title">${displayDate}</h2>
@@ -79,11 +77,11 @@ const createDateSection = (date) => {
     </div>
     <div class="cards-container"></div>
   `;
-  
+
   // Add event listener to the new add button
   const addBtn = section.querySelector('.add-card-btn');
   addBtn.addEventListener('click', () => addCardToSection(section));
-  
+
   return section;
 };
 
@@ -91,19 +89,19 @@ const createDateSection = (date) => {
 const createTodoItem = (text, isCompleted = false, todoId = null) => {
   const li = document.createElement('li');
   if (isCompleted) li.classList.add('done');
-  
+
   // Create drag handle
   const dragHandle = document.createElement('div');
   dragHandle.className = 'todo-drag-handle';
   dragHandle.title = 'Drag to reorder';
-  
+
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.className = 'todo-checkbox';
   checkbox.checked = isCompleted;
   checkbox.addEventListener('change', (e) => {
     li.classList.toggle('done', e.target.checked);
-    
+
     // Reorder the list to put completed items at the bottom
     const todoList = li.closest('.todo-list');
     if (todoList) {
@@ -114,16 +112,16 @@ const createTodoItem = (text, isCompleted = false, todoId = null) => {
         if (aDone === bDone) return 0;
         return aDone ? 1 : -1;
       });
-      
+
       // Reinsert items in correct order, keeping input at top
       const inputContainer = todoList.querySelector('.new-todo-input-container');
       if (inputContainer) {
         todoList.insertBefore(inputContainer, todoList.firstChild);
       }
-      
+
       items.forEach(item => todoList.appendChild(item));
     }
-    
+
     // Update localStorage if we have the todoId
     if (todoId) {
       updateTodoInStorage(todoId, { completed: e.target.checked });
@@ -134,14 +132,14 @@ const createTodoItem = (text, isCompleted = false, todoId = null) => {
   textInput.className = 'todo-text-input';
   textInput.value = text;
   textInput.rows = 1;
-  
+
   // Auto-resize textarea
   const autoResize = () => {
     textInput.style.height = 'auto';
     const scrollHeight = textInput.scrollHeight;
     textInput.style.height = Math.min(scrollHeight, 60) + 'px'; // Max 3 lines
   };
-  
+
   textInput.addEventListener('input', autoResize);
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -149,13 +147,13 @@ const createTodoItem = (text, isCompleted = false, todoId = null) => {
       textInput.blur();
     }
   });
-  
+
   textInput.addEventListener('blur', () => {
     if (todoId) {
       updateTodoInStorage(todoId, { text: textInput.value });
     }
   });
-  
+
   // Initial resize
   setTimeout(autoResize, 0);
 
@@ -172,10 +170,10 @@ const createTodoItem = (text, isCompleted = false, todoId = null) => {
   li.appendChild(checkbox);
   li.appendChild(textInput);
   li.appendChild(deleteBtn);
-  
+
   // Add drag and drop functionality
   setupTodoDragAndDrop(li);
-  
+
   return li;
 };
 
@@ -186,7 +184,7 @@ const createNewTodoInput = (cardId, dateKey) => {
   inputContainer.style.listStyle = 'none';
   inputContainer.style.padding = '0';
   inputContainer.style.margin = '0';
-  
+
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'new-todo-input';
@@ -196,11 +194,11 @@ const createNewTodoInput = (cardId, dateKey) => {
       const todoId = generateUniqueId();
       const todoItem = createTodoItem(input.value.trim(), false, todoId);
       todoItem.dataset.todoId = todoId;
-      
+
       // Insert after the input container (as second item)
       const todoList = inputContainer.closest('.todo-list');
       todoList.insertBefore(todoItem, inputContainer.nextSibling);
-      
+
       // Save to localStorage
       if (!todoData[dateKey]) todoData[dateKey] = [];
       const existingCard = todoData[dateKey].find(c => c.id === cardId);
@@ -222,12 +220,12 @@ const createNewTodoInput = (cardId, dateKey) => {
         });
       }
       saveToLocalStorage();
-      
+
       input.value = '';
       input.focus();
     }
   });
-  
+
   inputContainer.appendChild(input);
   return inputContainer;
 };
@@ -273,7 +271,7 @@ const deleteTodoItem = (li, todoId) => {
 const deleteCard = (card, cardId) => {
   const dateSection = card.closest('.date-section');
   const dateKey = dateSection.dataset.date;
-  
+
   if (dateKey && todoData[dateKey]) {
     const index = todoData[dateKey].findIndex(c => c.id === cardId);
     if (index !== -1) {
@@ -281,14 +279,14 @@ const deleteCard = (card, cardId) => {
       saveToLocalStorage();
     }
   }
-  
+
   card.remove();
 };
 
 // Setup drag and drop for todo items
 const setupTodoDragAndDrop = (li) => {
   const dragHandle = li.querySelector('.todo-drag-handle');
-  
+
   dragHandle.addEventListener('mousedown', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -299,7 +297,7 @@ const setupTodoDragAndDrop = (li) => {
 // Setup card header drag and drop
 const setupCardDragAndDrop = (card) => {
   const dragHandle = card.querySelector('.card-drag-handle');
-  
+
   dragHandle.addEventListener('mousedown', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -310,11 +308,11 @@ const setupCardDragAndDrop = (card) => {
 // Start drag operation for todo items
 const startTodoDrag = (e, li) => {
   if (li.classList.contains('done')) return; // Don't drag completed items
-  
+
   draggedElement = li;
   originalParent = li.parentNode;
   originalIndex = Array.from(originalParent.children).indexOf(li);
-  
+
   // Create ghost element with better styling
   dragGhost = li.cloneNode(true);
   dragGhost.classList.add('drag-ghost');
@@ -330,20 +328,20 @@ const startTodoDrag = (e, li) => {
   dragGhost.style.borderRadius = '8px';
   dragGhost.style.backgroundColor = 'white';
   dragGhost.style.border = '2px solid #007bff';
-  
+
   // Remove interactive elements from ghost
   const ghostInputs = dragGhost.querySelectorAll('input, textarea, button');
   ghostInputs.forEach(el => el.remove());
-  
+
   document.body.appendChild(dragGhost);
-  
+
   // Add dragging class to original
   li.classList.add('dragging');
-  
+
   // Add event listeners
   document.addEventListener('mousemove', onTodoDragMove);
   document.addEventListener('mouseup', onTodoDragEnd);
-  
+
   // Prevent text selection
   document.body.style.userSelect = 'none';
   document.body.style.cursor = 'grabbing';
@@ -354,7 +352,7 @@ const startCardDrag = (e, card) => {
   draggedCard = card;
   originalParent = card.parentNode;
   originalIndex = Array.from(originalParent.children).indexOf(card);
-  
+
   // Create ghost element with better styling
   cardDragGhost = card.cloneNode(true);
   cardDragGhost.classList.add('drag-ghost');
@@ -370,20 +368,20 @@ const startCardDrag = (e, card) => {
   cardDragGhost.style.borderRadius = '12px';
   cardDragGhost.style.backgroundColor = 'white';
   cardDragGhost.style.border = '2px solid #007bff';
-  
+
   // Remove interactive elements from ghost
   const ghostInputs = cardDragGhost.querySelectorAll('input, textarea, button');
   ghostInputs.forEach(el => el.remove());
-  
+
   document.body.appendChild(cardDragGhost);
-  
+
   // Add dragging class to original
   card.classList.add('dragging');
-  
+
   // Add event listeners
   document.addEventListener('mousemove', onCardDragMove);
   document.addEventListener('mouseup', onCardDragEnd);
-  
+
   // Prevent text selection
   document.body.style.userSelect = 'none';
   document.body.style.cursor = 'grabbing';
@@ -392,10 +390,10 @@ const startCardDrag = (e, card) => {
 // Handle drag movement for todo items
 const onTodoDragMove = (e) => {
   if (!dragGhost) return;
-  
+
   dragGhost.style.left = e.clientX + 'px';
   dragGhost.style.top = e.clientY + 'px';
-  
+
   // Find drop target and show indicator
   const { target, position, referenceElement } = findTodoDropTarget(e.clientX, e.clientY);
   showTodoDropIndicator(target, position, referenceElement);
@@ -404,10 +402,10 @@ const onTodoDragMove = (e) => {
 // Handle drag movement for cards
 const onCardDragMove = (e) => {
   if (!cardDragGhost) return;
-  
+
   cardDragGhost.style.left = e.clientX + 'px';
   cardDragGhost.style.top = e.clientY + 'px';
-  
+
   // Find drop target and show indicator
   const { target, position, referenceElement } = findCardDropTarget(e.clientX, e.clientY);
   showCardDropIndicator(target, position, referenceElement);
@@ -416,37 +414,37 @@ const onCardDragMove = (e) => {
 // Handle drag end for todo items
 const onTodoDragEnd = (e) => {
   if (!draggedElement || !dragGhost) return;
-  
+
   const { target, position, referenceElement } = findTodoDropTarget(e.clientX, e.clientY);
   if (target && target !== draggedElement) {
     moveTodoItem(draggedElement, target, position, referenceElement);
   }
-  
+
   cleanupTodoDrag();
 };
 
 // Handle drag end for cards
 const onCardDragEnd = (e) => {
   if (!draggedCard || !cardDragGhost) return;
-  
+
   const { target, position, referenceElement } = findCardDropTarget(e.clientX, e.clientY);
   if (target && target !== draggedCard) {
     moveCard(draggedCard, target, position, referenceElement);
   }
-  
+
   cleanupCardDrag();
 };
 
 // Find drop target for todo items with position
 const findTodoDropTarget = (x, y) => {
   const elements = document.elementsFromPoint(x, y);
-  
+
   for (const element of elements) {
     // Check if we're over a todo list
     if (element.classList.contains('todo-list')) {
       return { target: element, position: 'end' };
     }
-    
+
     // Check if we're over a todo item
     if (element.tagName === 'LI' && element.closest('.todo-list') && !element.classList.contains('new-todo-input-container')) {
       const todoList = element.closest('.todo-list');
@@ -455,20 +453,20 @@ const findTodoDropTarget = (x, y) => {
       return { target: todoList, position, referenceElement: element };
     }
   }
-  
+
   return { target: null, position: null };
 };
 
 // Find drop target for cards with position
 const findCardDropTarget = (x, y) => {
   const elements = document.elementsFromPoint(x, y);
-  
+
   for (const element of elements) {
     // Check if we're over a card container
     if (element.classList.contains('cards-container')) {
       return { target: element, position: 'end' };
     }
-    
+
     // Check if we're over a card
     if (element.classList.contains('CARD-Task')) {
       const cardContainer = element.closest('.cards-container');
@@ -477,22 +475,22 @@ const findCardDropTarget = (x, y) => {
       return { target: cardContainer, position, referenceElement: element };
     }
   }
-  
+
   return { target: null, position: null };
 };
 
 // Show card drop indicator - vertical line
 const showCardDropIndicator = (target, position, referenceElement) => {
   clearCardDropIndicators();
-  
+
   if (!target || !position) return;
-  
+
   if (!cardDropIndicator) {
     cardDropIndicator = document.createElement('div');
     cardDropIndicator.className = 'card-drop-indicator';
     document.body.appendChild(cardDropIndicator);
   }
-  
+
   if (position === 'end') {
     const targetRect = target.getBoundingClientRect();
     cardDropIndicator.style.left = (targetRect.right - 1) + 'px';
@@ -504,22 +502,22 @@ const showCardDropIndicator = (target, position, referenceElement) => {
     cardDropIndicator.style.top = referenceRect.top + 'px';
     cardDropIndicator.style.height = referenceRect.height + 'px';
   }
-  
+
   cardDropIndicator.classList.add('active');
 };
 
 // Show todo drop indicator - horizontal line
 const showTodoDropIndicator = (target, position, referenceElement) => {
   clearDropIndicators();
-  
+
   if (!target || !position) return;
-  
+
   if (!dropIndicator) {
     dropIndicator = document.createElement('div');
     dropIndicator.className = 'drop-indicator';
     document.body.appendChild(dropIndicator);
   }
-  
+
   if (position === 'end') {
     const targetRect = target.getBoundingClientRect();
     dropIndicator.style.left = targetRect.left + 'px';
@@ -531,7 +529,7 @@ const showTodoDropIndicator = (target, position, referenceElement) => {
     dropIndicator.style.top = (position === 'before' ? referenceRect.top : referenceRect.bottom - 1) + 'px';
     dropIndicator.style.width = referenceRect.width + 'px';
   }
-  
+
   dropIndicator.classList.add('active');
 };
 
@@ -555,20 +553,20 @@ const moveTodoItem = (draggedItem, targetList, position, referenceElement) => {
   const newDateKey = newDateSection.dataset.date;
   const newCard = targetList.closest('.CARD-Task');
   const newCardId = newCard.dataset.cardId;
-  
+
   // Remove from original location
   const originalDateSection = draggedItem.closest('.date-section');
   const originalDateKey = originalDateSection.dataset.date;
   const originalCard = draggedItem.closest('.CARD-Task');
   const originalCardId = originalCard.dataset.cardId;
-  
+
   if (originalDateKey && todoData[originalDateKey]) {
     const originalCardData = todoData[originalDateKey].find(c => c.id === originalCardId);
     if (originalCardData && originalCardData.todos) {
       const todoIndex = originalCardData.todos.findIndex(t => t.id === todoId);
       if (todoIndex !== -1) {
         const todoData = originalCardData.todos.splice(todoIndex, 1)[0];
-        
+
         // Add to new location
         if (!todoData[newDateKey]) todoData[newDateKey] = [];
         const newCardData = todoData[newDateKey].find(c => c.id === newCardId);
@@ -576,12 +574,12 @@ const moveTodoItem = (draggedItem, targetList, position, referenceElement) => {
           if (!newCardData.todos) newCardData.todos = [];
           newCardData.todos.push(todoData);
         }
-        
+
         saveToLocalStorage();
       }
     }
   }
-  
+
   // Move DOM element
   if (position === 'end') {
     targetList.appendChild(draggedItem);
@@ -608,7 +606,7 @@ const moveTodoItem = (draggedItem, targetList, position, referenceElement) => {
       }
     }
   }
-  
+
   // Reorder completed items
   const items = Array.from(targetList.children).filter(item => !item.classList.contains('new-todo-input-container'));
   items.sort((a, b) => {
@@ -617,13 +615,13 @@ const moveTodoItem = (draggedItem, targetList, position, referenceElement) => {
     if (aDone === bDone) return 0;
     return aDone ? 1 : -1;
   });
-  
+
   // Reinsert items in correct order, keeping input at top
   const inputContainer = targetList.querySelector('.new-todo-input-container');
   if (inputContainer) {
     targetList.insertBefore(inputContainer, targetList.firstChild);
   }
-  
+
   items.forEach(item => targetList.appendChild(item));
 };
 
@@ -632,24 +630,24 @@ const moveCard = (draggedCard, targetContainer, position, referenceElement) => {
   const cardId = draggedCard.dataset.cardId;
   const newDateSection = targetContainer.closest('.date-section');
   const newDateKey = newDateSection.dataset.date;
-  
+
   // Remove from original location
   const originalDateSection = draggedCard.closest('.date-section');
   const originalDateKey = originalDateSection.dataset.date;
-  
+
   if (originalDateKey && todoData[originalDateKey]) {
     const cardIndex = todoData[originalDateKey].findIndex(c => c.id === cardId);
     if (cardIndex !== -1) {
       const cardData = todoData[originalDateKey].splice(cardIndex, 1)[0];
-      
+
       // Add to new location
       if (!todoData[newDateKey]) todoData[newDateKey] = [];
       todoData[newDateKey].push(cardData);
-      
+
       saveToLocalStorage();
     }
   }
-  
+
   // Move DOM element
   if (position === 'end') {
     targetContainer.appendChild(draggedCard);
@@ -674,19 +672,19 @@ const cleanupTodoDrag = () => {
     dragGhost.remove();
     dragGhost = null;
   }
-  
+
   if (draggedElement) {
     draggedElement.classList.remove('dragging');
     draggedElement = null;
   }
-  
+
   clearDropIndicators();
-  
+
   document.removeEventListener('mousemove', onTodoDragMove);
   document.removeEventListener('mouseup', onTodoDragEnd);
   document.body.style.userSelect = '';
   document.body.style.cursor = '';
-  
+
   originalParent = null;
   originalIndex = null;
 };
@@ -697,19 +695,19 @@ const cleanupCardDrag = () => {
     cardDragGhost.remove();
     cardDragGhost = null;
   }
-  
+
   if (draggedCard) {
     draggedCard.classList.remove('dragging');
     draggedCard = null;
   }
-  
+
   clearCardDropIndicators();
-  
+
   document.removeEventListener('mousemove', onCardDragMove);
   document.removeEventListener('mouseup', onCardDragEnd);
   document.body.style.userSelect = '';
   document.body.style.cursor = '';
-  
+
   originalParent = null;
   originalIndex = null;
 };
@@ -717,38 +715,38 @@ const cleanupCardDrag = () => {
 // Update title tooltip for long titles with accessibility
 const updateTitleTooltip = (titleInput, isTruncated) => {
   const text = titleInput.value;
-  
+
   if (isTruncated && text.trim()) {
     // Remove existing tooltip
     const existingTooltip = document.querySelector('.custom-tooltip');
     if (existingTooltip) {
       existingTooltip.remove();
     }
-    
+
     // Create custom tooltip with ellipses if needed
     const tooltip = document.createElement('div');
     tooltip.className = 'custom-tooltip';
     tooltip.id = `tooltip-${titleInput.closest('.CARD-Task').dataset.cardId}`;
-    
+
     // Show full text with ellipses indication if truncated
     const displayText = text.length > 100 ? text.substring(0, 100) + '...' : text;
     tooltip.textContent = displayText;
     document.body.appendChild(tooltip);
-    
+
     // Position tooltip below the input field
     const rect = titleInput.getBoundingClientRect();
     tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
     tooltip.style.top = rect.bottom + 8 + 'px'; // Position below the input
-    
+
     // Show tooltip on hover and focus
     const showTooltip = () => {
       tooltip.classList.add('active');
     };
-    
+
     const hideTooltip = () => {
       tooltip.classList.remove('active');
     };
-    
+
     titleInput.addEventListener('mouseenter', showTooltip);
     titleInput.addEventListener('mouseleave', hideTooltip);
     titleInput.addEventListener('focus', showTooltip);
@@ -762,11 +760,6 @@ const updateTitleTooltip = (titleInput, isTruncated) => {
   }
 };
 
-// Function to truncate text from the end
-const truncateTextFromEnd = (text, maxLength = 50) => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
-};
 
 // Add card to a specific section
 const addCardToSection = (dateSection) => {
@@ -779,7 +772,7 @@ const addCardToSection = (dateSection) => {
   card.className = 'CARD-Task';
   card.dataset.cardId = cardId;
   card.setAttribute('role', 'article');
-  card.setAttribute('aria-label', `Card: Untitled Card`);
+  card.setAttribute('aria-label', 'Card: Untitled Card');
 
   // Create card header container
   const cardHeader = document.createElement('div');
@@ -817,34 +810,34 @@ const addCardToSection = (dateSection) => {
     const maxHeight = 44; // Max 2 lines
     const newHeight = Math.min(scrollHeight, maxHeight);
     titleInput.style.height = newHeight + 'px';
-    
+
     // Update card header height to accommodate textarea
     const cardHeader = titleInput.closest('.card-header');
     if (cardHeader) {
       cardHeader.style.minHeight = (newHeight + 16) + 'px'; // Add padding
     }
-    
+
     // Update card height to accommodate content
     const card = titleInput.closest('.CARD-Task');
     if (card) {
       card.style.height = 'auto'; // Allow card to grow naturally
     }
-    
+
     // Check if text is truncated and update tooltip
     const isTruncated = scrollHeight > maxHeight || titleInput.value.length > 100;
-    
+
     // Add/remove truncated class for visual indicator
     if (isTruncated) {
       titleInput.classList.add('truncated');
     } else {
       titleInput.classList.remove('truncated');
     }
-    
+
     updateTitleTooltip(titleInput, isTruncated);
   };
-  
+
   titleInput.addEventListener('input', autoResize);
-  
+
   // Handle focus behavior
   titleInput.addEventListener('focus', () => {
     // If it's empty or "Untitled Card", clear it
@@ -862,10 +855,10 @@ const addCardToSection = (dateSection) => {
     } else {
       titleInput.classList.remove('untitled');
     }
-    
+
     // Update tooltip for long titles
     updateTitleTooltip(titleInput, false);
-    
+
     // Save to localStorage
     if (!todoData[dateKey]) todoData[dateKey] = [];
     const existingCard = todoData[dateKey].find(c => c.id === cardId);
@@ -949,7 +942,7 @@ const updateCalendar = () => {
 
   // Load existing data
   loadSavedData();
-  
+
   // Update current week display
   updateCurrentWeekDisplay();
 };
@@ -960,21 +953,21 @@ const updateCurrentWeekDisplay = () => {
   if (calendarTitle) {
     const startDate = getRelativeDate(0);
     const endDate = getRelativeDate(6);
-    
+
     // Get week number using the start date
     const weekNumber = getWeekNumber(startDate);
     const year = startDate.getFullYear();
-    
+
     // Format dates with leading zeros
-    const startFormatted = startDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: '2-digit' 
+    const startFormatted = startDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit'
     });
-    const endFormatted = endDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: '2-digit' 
+    const endFormatted = endDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit'
     });
-    
+
     calendarTitle.textContent = `Week ${weekNumber.toString().padStart(2, '0')} | ${year} | ${startFormatted} - ${endFormatted}`;
   }
 };
@@ -985,7 +978,7 @@ const loadSavedData = () => {
     const dateSection = document.querySelector(`[data-date="${dateKey}"]`);
     if (dateSection && todoData[dateKey]) {
       const cardContainer = dateSection.querySelector('.cards-container');
-      
+
       todoData[dateKey].forEach(cardData => {
         const card = document.createElement('div');
         card.className = 'CARD-Task';
@@ -1020,7 +1013,7 @@ const loadSavedData = () => {
         titleInput.setAttribute('aria-label', 'Card title');
         titleInput.setAttribute('placeholder', 'Untitled Card');
         titleInput.setAttribute('maxlength', '200');
-        
+
         // Auto-resize textarea
         const autoResize = () => {
           titleInput.style.height = 'auto';
@@ -1028,40 +1021,40 @@ const loadSavedData = () => {
           const maxHeight = 44; // Max 2 lines
           const newHeight = Math.min(scrollHeight, maxHeight);
           titleInput.style.height = newHeight + 'px';
-          
+
           // Update card header height to accommodate textarea
           const cardHeader = titleInput.closest('.card-header');
           if (cardHeader) {
             cardHeader.style.minHeight = (newHeight + 16) + 'px'; // Add padding
           }
-          
+
           // Update card height to accommodate content
           const card = titleInput.closest('.CARD-Task');
           if (card) {
             card.style.height = 'auto'; // Allow card to grow naturally
           }
-          
+
           // Check if text is truncated and update tooltip
           const isTruncated = scrollHeight > maxHeight || titleInput.value.length > 100;
-          
+
           // Add/remove truncated class for visual indicator
           if (isTruncated) {
             titleInput.classList.add('truncated');
           } else {
             titleInput.classList.remove('truncated');
           }
-          
+
           updateTitleTooltip(titleInput, isTruncated);
         };
-        
+
         titleInput.addEventListener('input', autoResize);
-        
+
         // Check if it's an untitled card
         if (!cardData.title || cardData.title === 'Untitled Card' || !cardData.title.trim()) {
           titleInput.value = 'Untitled Card';
           titleInput.classList.add('untitled');
         }
-        
+
         // Handle focus behavior
         titleInput.addEventListener('focus', () => {
           // If it's empty or "Untitled Card", clear it
@@ -1070,7 +1063,7 @@ const loadSavedData = () => {
             titleInput.classList.remove('untitled');
           }
         });
-        
+
         // Handle blur behavior
         titleInput.addEventListener('blur', () => {
           if (!titleInput.value.trim()) {
@@ -1079,10 +1072,10 @@ const loadSavedData = () => {
           } else {
             titleInput.classList.remove('untitled');
           }
-          
+
           // Update tooltip for long titles
           updateTitleTooltip(titleInput, false);
-          
+
           // Save to localStorage
           cardData.title = titleInput.value;
           saveToLocalStorage();
@@ -1143,7 +1136,7 @@ const loadSavedData = () => {
 
         // Add card to container
         cardContainer.appendChild(card);
-        
+
         // Update tooltip for loaded cards
         updateTitleTooltip(titleInput, false);
       });
@@ -1155,27 +1148,27 @@ const loadSavedData = () => {
 const filterTasks = (filterType) => {
   const cards = document.querySelectorAll('.CARD-Task');
   const today = formatDate(new Date());
-  
+
   cards.forEach(card => {
     const dateSection = card.closest('.date-section');
     const dateKey = dateSection.dataset.date;
     const todos = card.querySelectorAll('.todo-list li:not(.new-todo-input-container)');
     let shouldShow = true;
-    
+
     switch (filterType) {
-      case 'today':
-        shouldShow = dateKey === today;
-        break;
-      case 'completed':
-        const hasCompletedTodos = Array.from(todos).some(todo => todo.classList.contains('done'));
-        shouldShow = hasCompletedTodos;
-        break;
-      case 'all':
-      default:
-        shouldShow = true;
-        break;
+    case 'today':
+      shouldShow = dateKey === today;
+      break;
+    case 'completed':
+      const hasCompletedTodos = Array.from(todos).some(todo => todo.classList.contains('done'));
+      shouldShow = hasCompletedTodos;
+      break;
+    case 'all':
+    default:
+      shouldShow = true;
+      break;
     }
-    
+
     card.style.display = shouldShow ? 'block' : 'none';
   });
 };
@@ -1186,19 +1179,19 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCalendarNavigation();
   updateCalendar();
   updateCurrentWeekDisplay();
-  
+
   // Filter navigation - update to work with new HTML structure
   const navButtons = document.querySelectorAll('.nav-btn');
   navButtons.forEach(button => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      
+
       // Remove active class from all buttons
       navButtons.forEach(b => b.classList.remove('active'));
-      
+
       // Add active class to clicked button
       button.classList.add('active');
-      
+
       // Apply filter based on button text
       const filterType = button.querySelector('span').textContent.toLowerCase();
       if (filterType === 'today') {
@@ -1210,23 +1203,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-  
+
   // Set "All Tasks" as default active
   const allTasksButton = document.querySelector('.nav-btn span');
   if (allTasksButton && allTasksButton.textContent.toLowerCase() === 'today') {
     allTasksButton.parentElement.classList.add('active');
   }
-  
+
   // Expandable search functionality
   const searchToggle = document.querySelector('.search-toggle');
   const searchExpanded = document.querySelector('.search-expanded');
   const searchInput = document.getElementById('search-input');
-  
+
   if (searchToggle && searchExpanded && searchInput) {
     // Toggle search expansion
     searchToggle.addEventListener('click', () => {
       const isExpanded = searchToggle.getAttribute('aria-expanded') === 'true';
-      
+
       if (isExpanded) {
         // Collapse search
         searchToggle.setAttribute('aria-expanded', 'false');
@@ -1245,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.focus();
       }
     });
-    
+
     // Close search on escape key
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -1260,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
-    
+
     // Close search when clicking outside
     document.addEventListener('click', (e) => {
       if (!searchToggle.contains(e.target) && !searchExpanded.contains(e.target)) {
@@ -1269,21 +1262,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
+
   // Search functionality
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const searchTerm = e.target.value.toLowerCase();
       const cards = document.querySelectorAll('.CARD-Task');
-      
+
       cards.forEach(card => {
         const title = card.querySelector('.card-title-input').value.toLowerCase();
         const todos = Array.from(card.querySelectorAll('.todo-text-input'))
           .map(input => input.value.toLowerCase());
-        
-        const matches = title.includes(searchTerm) || 
+
+        const matches = title.includes(searchTerm) ||
                        todos.some(todo => todo.includes(searchTerm));
-        
+
         card.style.display = matches || !searchTerm ? 'block' : 'none';
       });
     });
